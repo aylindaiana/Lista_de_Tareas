@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
-const Port = process.env.Port || 3000;
+const Port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -16,16 +16,25 @@ app.get('/api/tareas', (req, res) => {
   res.json(tareas);
 });
 
+app.get('/api/tareas/:id', (req, res) => {
+  const { id } = req.params;
+  const tarea = tareas.find(task => task.id === id);
+  if (!tarea) {
+    return res.status(404).json({ error: 'Tarea no encontrada' });
+  }
+  res.json(tarea);
+});
+
 app.post('/api/tareas', (req, res) => {
   const { title, description } = req.body;
-  if (!title || !description) {
-    return res.status(400).json({ error: 'El titulo y la descripción son requeridos.' });
+  if (!title) {
+    return res.status(400).json({ error: 'El titulo es requerido para completar.' });
   }
 
   const nuevo = {
     id: String(Date.now()), 
     title,
-    description,
+    description: description || '',
     completed: false,
     createdAt: new Date(),
   };
@@ -45,7 +54,7 @@ app.put('/api/tareas/:id', (req, res) => {
   tareas[indexTarea] = {
     ...tareas[indexTarea],
     title: title || tareas[indexTarea].title,
-    description: description || tareas[indexTarea].description,
+    description: description !== undefined ? description : tareas[indexTarea].description,
     completed: completed !== undefined ? completed : tareas[indexTarea].completed,
   };
   res.json(tareas[indexTarea]);
